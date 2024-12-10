@@ -37,5 +37,112 @@ proj_1_data = read_csv("data/Project_1_Data.csv") |>
 
 ```
 
+## Create Table Summarizing Response Variables
 
+```{r}
+
+proj_1_data |>
+  select(math_score, reading_score, writing_score) |>
+  pivot_longer(
+    cols= everything(),
+    names_to = "Test",
+    values_to = "Score"
+  ) |>
+  group_by(Test) |>
+  summarize(Mean = round(mean(Score), 2),
+            StDev = round(sd(Score), 2),
+            Min = min(Score),
+            Max = max(Score)) |>
+  mutate(Test = case_match(
+    Test,
+    "math_score" ~ "Math",
+    "reading_score" ~ "Reading",
+    "writing_score" ~ "Writing"
+    )
+  ) |>
+  knitr::kable()
+
+```
+
+## Single-Variable Categorical Plots
+
+### Ethnic Group
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = ethnic_group)) + 
+  geom_bar()
+
+```
+
+### Parent Education
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = parent_educ)) + 
+  geom_bar()
+
+```
+
+### Lunch Type
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = lunch_type)) + 
+  geom_bar()
+
+```
+
+### Test Prep
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = test_prep)) + 
+  geom_bar()
+
+```
+
+### Parent Marital Status
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = parent_marital_status)) + 
+  geom_bar()
+
+```
+
+### Practicing Sports
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = practice_sport)) + 
+  geom_bar()
+
+```
+
+### First Child
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = is_first_child)) + 
+  geom_bar()
+
+```
+
+### Number of Siblings
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = nr_siblings)) + 
+  geom_bar()
+
+```
 
