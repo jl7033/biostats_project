@@ -33,7 +33,8 @@ proj_1_data = read_csv("data/Project_1_Data.csv") |>
              "group D" ~ "D",
              "group E" ~ "E"
            )
-         )
+         ) |>
+  drop_na()
 
 ```
 
@@ -201,4 +202,25 @@ lm_all_writing |> broom::glance() |> select(adj.r.squared)
 
 ```
 
+## Backward selection
 
+### Math
+```{r}
+math_back_lm <- step(lm_all_math, direction = "backward")
+
+summary(math_back_lm)
+```
+
+### Reading
+```{r}
+read_back_lm <- step(lm_all_reading, direction = "backward")
+
+summary(read_back_lm)
+```
+
+### Writing
+```{r}
+write_back_lm <- step(lm_all_writing, direction = "backward")
+
+summary(write_back_lm)
+```
