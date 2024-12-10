@@ -32,8 +32,21 @@ proj_1_data = read_csv("data/Project_1_Data.csv") |>
              "group C" ~ "C",
              "group D" ~ "D",
              "group E" ~ "E"
+           ),
+         nr_siblings = 
+           case_match(
+             nr_siblings,
+             0 ~ "0",
+             1 ~ "1",
+             2 ~ "2",
+             3 ~ "3",
+             4 ~ "4+",
+             5 ~ "4+",
+             6 ~ "4+",
+             7 ~ "4+"
            )
-         )
+         ) |>
+  drop_na()
 
 ```
 
@@ -201,4 +214,44 @@ lm_all_writing |> broom::glance() |> select(adj.r.squared)
 
 ```
 
+## LASSO
+
+### Math_LASSO
+
+```{r}
+
+math_pred = math_data |> 
+  select(-math_score) |>
+  as.matrix()
+
+math_score = pull(math_data, math_score)
+
+view(math_score)
+
+math_cv = cv.glmnet(x = math_pred, y = math_score)
+
+```
+
+```{r}
+
+as.matrix(math_data[ , -"math_score"])
+
+```
+
+
+### Reading_LASSO
+
+```{r}
+
+
+
+```
+
+### Writing_LASSO
+
+```{r}
+
+
+
+```
 
