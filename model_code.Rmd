@@ -159,6 +159,210 @@ proj_1_data |>
 
 ```
 
+### Further EDA
+
+```{r}
+# Histograms for Response Variables
+
+ggplot(data=proj_1_data, aes(math_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Math Scores",
+       x = "Math Score",
+       y = "") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(reading_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Reading Scores",
+       x = "Reading Score",
+       y = "") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(writing_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Writing Scores",
+       x = "Writing Score",
+       y = "") +
+  theme_bw()
+
+# Boxplots for Predictive Variables
+
+ggplot(data=proj_1_data, aes(x=parent_educ,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_educ,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_educ,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Writng Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Writing Score") +
+  theme_bw()
+
+# Looks strong
+ggplot(data=proj_1_data, aes(x=lunch_type,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=lunch_type,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=lunch_type,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=transport_means,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=transport_means,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=transport_means,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=practice_sport,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=practice_sport,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=practice_sport,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Writing Score") +
+  theme_bw()
+
+# Looks strong, look at diff between math and read/write
+ggplot(data=proj_1_data, aes(x=gender,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=gender,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=gender,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=is_first_child,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=is_first_child,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=is_first_child,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=math_score)) + geom_point()
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=reading_score)) + geom_point()
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=writing_score)) + geom_point()
+```
+
 # Modeling
 
 ### Create Data Frames with only Math, Reading, Writing to Make LM Functions Easier to Write
