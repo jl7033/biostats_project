@@ -51,8 +51,11 @@ score = read_csv("data/Project_1_data.csv") |>
 
 Create model matrix with one hot-encoding
 ```{r}
-score %>% 
-  model.matrix()
+
+model.matrix(
+  object = math_score ~ .,
+  data = score
+)
 ```
 
 
@@ -97,8 +100,8 @@ Search for outliers. Outliers are defined as points falling 1.5 * IQR outside Q1
 Search for co-linearity/high correlation in predictors
 ```{r}
 score %>% 
-  select(-math_score, -reading_score, -writing_score) %>% 
-  as.matrix() %>% 
+  #select(-math_score, -reading_score, -writing_score) %>% 
+  as.matrix(math_score~., data =_) %>% 
   cor()
 ```
 
