@@ -146,3 +146,59 @@ proj_1_data |>
 
 ```
 
+# Modeling
+
+### Create Data Frames with only Math, Reading, Writing to Make LM Functions Easier to Write
+
+```{r}
+
+math_data = proj_1_data |>
+  select(-reading_score, -writing_score)
+
+reading_data = proj_1_data |>
+  select(-math_score, -writing_score)
+
+writing_data = proj_1_data |>
+  select(-math_score, -reading_score)
+
+```
+
+## All Predictors
+
+### Math_All
+
+```{r}
+
+lm_all_math = lm(math_score ~ ., data = math_data)
+
+summary(lm_all_math)
+
+lm_all_math |> broom::glance() |> select(adj.r.squared)
+
+```
+
+### Reading_All
+
+```{r}
+
+lm_all_reading = lm(reading_score ~ ., data = reading_data)
+
+summary(lm_all_reading)
+
+lm_all_reading |> broom::glance() |> select(adj.r.squared)
+
+```
+
+### Writing_All
+
+```{r}
+
+lm_all_writing = lm(writing_score ~ ., data = writing_data)
+
+summary(lm_all_writing)
+
+lm_all_writing |> broom::glance() |> select(adj.r.squared)
+
+```
+
+
