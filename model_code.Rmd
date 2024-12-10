@@ -13,9 +13,10 @@ library(glmnet)
 
 ## Upload Data
 
+
 ```{r}
 
-proj_1_data = read_csv("data/Project_1_Data.csv") |>
+proj_1_data = read_csv("data/Project_1_data.csv") |>
   janitor::clean_names() |>
   mutate(wkly_study_hours = 
            case_match(
@@ -36,6 +37,14 @@ proj_1_data = read_csv("data/Project_1_Data.csv") |>
          )
 
 ```
+
+
+### Look at Correlation
+
+```{r}
+
+```
+
 
 
 
