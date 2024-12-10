@@ -7,13 +7,35 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(glmnet)
 ```
 
 ## Upload Data
 
 ```{r}
 
-
+proj_1_data = read_csv("data/Project_1_Data.csv") |>
+  janitor::clean_names() |>
+  mutate(wkly_study_hours = 
+           case_match(
+             wkly_study_hours,
+             "< 5" ~ "< 5 hours",
+             "10-May" ~ "5-10 hours",
+             "> 10" ~ "> 10 hours"
+           ),
+         ethnic_group = 
+           case_match(
+             ethnic_group,
+             "group A" ~ "A",
+             "group B" ~ "B",
+             "group C" ~ "C",
+             "group D" ~ "D",
+             "group E" ~ "E"
+           )
+         )
 
 ```
+
+
 
