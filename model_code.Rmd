@@ -15,7 +15,6 @@ library(glmnet)
 
 
 ```{r}
-
 score = read_csv("data/Project_1_data.csv") |>
   janitor::clean_names() |>
   mutate(wkly_study_hours = 
@@ -51,11 +50,13 @@ score = read_csv("data/Project_1_data.csv") |>
 
 Create model matrix with one hot-encoding
 ```{r}
+library(fastDummies)
+score_dummies <- 
+  score %>% 
+  select(-math_score, -reading_score, -writing_score) %>% 
+  dummy_cols(ignore_na = TRUE) %>% 
+  select()
 
-model.matrix(
-  object = math_score ~ .,
-  data = score
-)
 ```
 
 
