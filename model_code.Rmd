@@ -87,11 +87,12 @@ dummy_col_names = c(
   # , "transport_means_school_bus"
   ,  "transport_means_private"
   
+  # , "nr_siblings_0"
+  , "nr_siblings_1", "nr_siblings_2", "nr_siblings_3", "nr_siblings_4+" 
+  
   # , "wkly_study_hours_< 5 hours"
   , "wkly_study_hours_> 10 hours", "wkly_study_hours_5-10 hours"
 )
-
-
 
 score_dummies =
   proj_1_data %>% 
@@ -122,7 +123,7 @@ cor_df =
   cor_df %>% 
   mutate(x_name = row.names(cor_df)) %>% 
   filter(x_name != '(Intercept)') %>% 
-  select(-'(Intercept)') %>% 
+  dplyr::select(-'(Intercept)') %>% 
   pivot_longer(
     gendermale:`wkly_study_hours5-10 hours`
     , values_to = 'correlation'
@@ -472,14 +473,14 @@ ggplot(data=proj_1_data, aes(x=nr_siblings,y=writing_score)) + geom_point()
 
 ```{r}
 
-math_data = proj_1_data |>
-  dplyr::select(-reading_score, -writing_score)
+math_data = score_dummies |> 
+  mutate(math_score = proj_1_data$math_score)
 
-reading_data = proj_1_data |>
-  dplyr::select(-math_score, -writing_score)
+reading_data = score_dummies |>
+  mutate(reading_score = proj_1_data$reading_score)
 
-writing_data = proj_1_data |>
-  dplyr::select(-math_score, -reading_score)
+writing_data = score_dummies |>
+  mutate(writing_score = proj_1_data$writing_score)
 
 ```
 
@@ -533,8 +534,14 @@ adjr2_all_writing = lm_all_writing |> broom::glance() |> dplyr::select(adj.r.squ
 
 ```{r}
 
-lm_econ_math = lm(math_score ~ parent_educ + lunch_type + 
-                    test_prep + transport_means, data = math_data)
+lm_econ_math = lm(math_score ~ parent_educ_high.school + 
+                    parent_educ_some.college + 
+                    parent_educ_associate.s.degree + 
+                    parent_educ_bachelor.s.degree + 
+                    parent_educ_master.s.degree + 
+                    lunch_type_free.reduced + 
+                    test_prep_completed + transport_means_private, 
+                  data = math_data)
 
 summary(lm_econ_math)
 
@@ -548,8 +555,14 @@ adjr2_econ_math = lm_econ_math |> broom::glance() |> dplyr::select(adj.r.squared
 
 ```{r}
 
-lm_econ_reading = lm(reading_score ~ parent_educ + lunch_type + 
-                    test_prep + transport_means, data = reading_data)
+lm_econ_reading = lm(reading_score ~ parent_educ_high.school + 
+                    parent_educ_some.college + 
+                    parent_educ_associate.s.degree + 
+                    parent_educ_bachelor.s.degree + 
+                    parent_educ_master.s.degree + 
+                    lunch_type_free.reduced + 
+                    test_prep_completed + transport_means_private, 
+                  data = reading_data)
 
 summary(lm_econ_reading)
 
@@ -563,8 +576,14 @@ adjr2_econ_reading = lm_econ_reading |> broom::glance() |> dplyr::select(adj.r.s
 
 ```{r}
 
-lm_econ_writing = lm(writing_score ~ parent_educ + lunch_type + 
-                    test_prep + transport_means, data = writing_data)
+lm_econ_math = lm(writing_score ~ parent_educ_high.school + 
+                    parent_educ_some.college + 
+                    parent_educ_associate.s.degree + 
+                    parent_educ_bachelor.s.degree + 
+                    parent_educ_master.s.degree + 
+                    lunch_type_free.reduced + 
+                    test_prep_completed + transport_means_private, 
+                  data = writing_data)
 
 summary(lm_econ_writing)
 
@@ -580,8 +599,11 @@ adjr2_econ_writing = lm_econ_writing |> broom::glance() |> dplyr::select(adj.r.s
 
 ```{r}
 
-lm_hw_math = lm(math_score ~ wkly_study_hours + 
-                  practice_sport, data = math_data)
+lm_hw_math = lm(math_score ~ wkly_study_hours_..10.hours + 
+                  wkly_study_hours_5.10.hours + 
+                  practice_sport_sometimes + 
+                  practice_sport_regularly,
+                  data = math_data)
 
 summary(lm_hw_math)
 
@@ -595,8 +617,11 @@ adjr2_hw_math = lm_hw_math |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```{r}
 
-lm_hw_reading = lm(reading_score ~ wkly_study_hours + 
-                  practice_sport, data = reading_data)
+lm_hw_reading = lm(math_score ~ wkly_study_hours_..10.hours + 
+                  wkly_study_hours_5.10.hours + 
+                  practice_sport_sometimes + 
+                  practice_sport_regularly,
+                  data = math_data)
 
 summary(lm_hw_reading)
 
@@ -849,7 +874,7 @@ model_stats_reading |> knitr::kable()
 ```{r}
 
 model_stats_writing = tibble(
-  reading_model_type = c("All", "Economic", "Hard Worker", 
+  writing_model_type = c("All", "Economic", "Hard Worker", 
                  "Demographic", "Family Structure"),
   ADJ_R2 = c(adjr2_all_writing, 
              adjr2_econ_writing, 
