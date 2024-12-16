@@ -1,0 +1,200 @@
+---
+title: "biostats_project"
+author: "Joe LaRocca"
+date: "2024-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(glmnet)
+library(fastDummies)
+```
+
+## Upload Data
+
+```{r}
+
+proj_1_data = read_csv("data/Project_1_data.csv") |>
+  janitor::clean_names() |>
+  mutate(wkly_study_hours = 
+           case_match(
+             wkly_study_hours,
+             "< 5" ~ "< 5 hours",
+             "10-May" ~ "5-10 hours",
+             "> 10" ~ "> 10 hours"
+           ),
+         ethnic_group = 
+           case_match(
+             ethnic_group,
+             "group A" ~ "A",
+             "group B" ~ "B",
+             "group C" ~ "C",
+             "group D" ~ "D",
+             "group E" ~ "E"
+           ),
+         nr_siblings = 
+           case_match(
+             nr_siblings,
+             0 ~ "0",
+             1 ~ "1",
+             2 ~ "2",
+             3 ~ "3",
+             4 ~ "4+",
+             5 ~ "4+",
+             6 ~ "4+",
+             7 ~ "4+"
+           )
+         ) 
+```
+
+
+Filling NA's. Creating Model Matrix
+```{r}
+
+dummy_col_names = c(
+  "gender_male" 
+  #, "gender_female"
+  
+  # , "ethnic_group_A",
+  , "ethnic_group_B", "ethnic_group_C" , "ethnic_group_D" , "ethnic_group_E"
+  
+  # , "parent_educ_some high school"
+  , "parent_educ_high school", "parent_educ_some college"
+  , "parent_educ_associate's degree", "parent_educ_bachelor's degree"
+  , "parent_educ_master's degree" 
+  
+  
+  # , "lunch_type_standard"
+  ,"lunch_type_free/reduced"
+  
+  # , "test_prep_none"
+  , "test_prep_completed"
+  
+  # ,  "parent_marital_status_married"
+  , "parent_marital_status_divorced", "parent_marital_status_single"
+  , "parent_marital_status_widowed"
+  
+  # , "practice_sport_never"
+  , "practice_sport_sometimes", "practice_sport_regularly"
+  
+  # , "is_first_child_no"
+  , "is_first_child_yes"
+  
+  # , "transport_means_school_bus"
+  ,  "transport_means_private"
+  
+  # , "wkly_study_hours_< 5 hours"
+  , "wkly_study_hours_> 10 hours", "wkly_study_hours_5-10 hours"
+)
+
+
+
+score_dummies =
+  proj_1_data %>% 
+  select(-math_score, -reading_score, -writing_score) %>% 
+  dummy_cols(ignore_na = TRUE) %>% 
+  select(all_of(dummy_col_names)) %>% 
+  ## fill NA's
+  lapply(function(x) ifelse(is.na(x), round(mean(x, na.rm = TRUE), 3), x)) %>% 
+  as.data.frame()
+```
+
+
+
+
+# EDA
+
+### Correlation
+
+Checking correlation of the predictor variables. There
+```{r}
+score_dummies %>% 
+  cor() %>% 
+  hist()
+```
+
+
+```{r}
+cor_df = 
+  proj_1_data %>%
+  select(-reading_score, -writing_score) %>% 
+  drop_na()
+
+cor_df = 
+  model.matrix(object = math_score ~ ., data = cor_df) %>% 
+  cor() %>% 
+  as.data.frame()
+
+cor_df = 
+  cor_df %>% 
+  mutate(x_name = row.names(cor_df)) %>% 
+  filter(x_name != '(Intercept)') %>% 
+  select(-'(Intercept)') %>% 
+  pivot_longer(
+    gendermale:`wkly_study_hours5-10 hours`
+    , values_to = 'correlation'
+    , names_to = 'y_name'
+  ) %>% 
+  filter(
+    substr(x_name, 1, 6) != substr(y_name, 1, 6),
+    tolower(x_name) < tolower(y_name)
+  )
+```
+
+```{r}
+hist(cor_df$correlation)
+```
+
+```{r}
+cor_df %>% 
+  arrange(desc(correlation)) %>% 
+  mutate(correlation = round(correlation, digits = 3)) %>% 
+  head(6) %>% 
+  knitr::kable()
+```
+
+
+
+### Create Data Frames 
+
+```{r}
+math_data = 
+  score_dummies |>
+  mutate(math_score = pull(proj_1_data, math_score))
+
+reading_data = 
+  score_dummies |>
+  mutate(reading_score = pull(proj_1_data, reading_score))
+
+writing_data = 
+  score_dummies |>
+  mutate(writing_score = pull(proj_1_data, writing_score))
+```
+
+## All Predictors
+
+### Math_All
+
+```{r}
+lm_all_math = lm(math_score ~ ., data = math_data)
+```
+
+### Model Diagnostics
+
+Plotting the residuals against the fitted values, we see no significant relationship.
+```{r}
+plot(predict(lm_all_math, score_dummies), lm_all_math$residuals)
+```
+
+Examining the residuals for normality, we see some deviation, but not egregious deviation. 
+```{r}
+qqnorm(lm_all_math$residuals)
+```
+
+Examining the residuals versus leverage, we find that no point is exerting fully undue leverage. 
+
+```{r}
+plot(lm_all_math, which = 5)
+```

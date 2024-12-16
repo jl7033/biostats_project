@@ -1,0 +1,73 @@
+---
+title: "descriptive_stats"
+author: "Ravi Brenner"
+date: "2024-12-16"
+output: html_document
+---
+
+--
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(glmnet)
+library(fastDummies)
+library(gtsummary)
+```
+
+## Upload Data
+
+```{r}
+
+proj_1_data = read_csv("data/Project_1_data.csv") |>
+  janitor::clean_names() |>
+  mutate(wkly_study_hours = 
+           case_match(
+             wkly_study_hours,
+             "< 5" ~ "< 5 hours",
+             "10-May" ~ "5-10 hours",
+             "> 10" ~ "> 10 hours"
+           ),
+         ethnic_group = 
+           case_match(
+             ethnic_group,
+             "group A" ~ "A",
+             "group B" ~ "B",
+             "group C" ~ "C",
+             "group D" ~ "D",
+             "group E" ~ "E"
+           ),
+         nr_siblings = 
+           case_match(
+             nr_siblings,
+             0 ~ "0",
+             1 ~ "1",
+             2 ~ "2",
+             3 ~ "3",
+             4 ~ "4+",
+             5 ~ "4+",
+             6 ~ "4+",
+             7 ~ "4+"
+           )
+         ) 
+```
+
+create some descriptive stats tables
+```{r}
+skimr::skim(proj_1_data)
+```
+
+```{r}
+proj_1_data |>
+  tbl_summary(
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 1,
+  ) |>
+  as_gt() |> 
+  gt::gtsave(filename = "table1.docx")
+```
+
+

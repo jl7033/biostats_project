@@ -735,6 +735,7 @@ adj_r2_writing_lasso
 
 ```
 
+<<<<<<< HEAD
 ## Backwards Selection
 
 ```{r}
@@ -831,3 +832,13 @@ model_stats_writing |> knitr::kable()
 ```
 
 
+=======
+
+
+
+
+```{r}
+
+```
+
+>>>>>>> refs/remotes/origin/main
