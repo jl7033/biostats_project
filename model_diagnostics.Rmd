@@ -108,14 +108,6 @@ score_dummies =
 
 ### Correlation
 
-Checking correlation of the predictor variables. There
-```{r}
-score_dummies %>% 
-  cor() %>% 
-  hist()
-```
-
-
 ```{r}
 cor_df = 
   proj_1_data %>%
@@ -142,11 +134,14 @@ cor_df =
     tolower(x_name) < tolower(y_name)
   )
 ```
+Getting a histogram of 
+
 
 ```{r}
 hist(cor_df$correlation)
 ```
 
+Getting the top correlations
 ```{r}
 cor_df %>% 
   arrange(desc(correlation)) %>% 
@@ -173,15 +168,42 @@ writing_data =
   mutate(writing_score = pull(proj_1_data, writing_score))
 ```
 
-## All Predictors
+# Modelling 
 
-### Math_All
+## Math_All
 
 ```{r}
 lm_all_math = lm(math_score ~ ., data = math_data)
 ```
 
-### Model Diagnostics
+
+
+## LASSO
+
+```{r}
+math_pred = model.matrix(math_score ~ (.)^3, math_data)[, -1]
+
+math_score = pull(math_data, math_score)
+
+math_cv = cv.glmnet(x = math_pred, y = math_score)
+
+math_lasso = glmnet(math_pred, math_score, lambda = math_cv$lambda.min) 
+
+r2_math_lasso = math_lasso$dev.ratio
+
+adj_r2_math_lasso = 1 - ((1 - r2_math_lasso) * (nrow(math_data) - 1)) / (nrow(math_data) - nrow(broom::tidy(math_lasso)) - 1)
+
+adj_r2_math_lasso
+
+```
+
+
+```{r}
+as.data.frame(coefficients(math_lasso))
+```
+
+
+# Model Diagnostics
 
 Plotting the residuals against the fitted values, we see no significant relationship.
 ```{r}

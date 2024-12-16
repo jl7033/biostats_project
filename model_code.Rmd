@@ -104,10 +104,51 @@ score_dummies =
 
 
 
+### Correlation
 
 ```{r}
-score_dummies
+cor_df = 
+  proj_1_data %>%
+  select(-reading_score, -writing_score) %>% 
+  drop_na()
+
+cor_df = 
+  model.matrix(object = math_score ~ ., data = cor_df) %>% 
+  cor() %>% 
+  as.data.frame()
+
+cor_df = 
+  cor_df %>% 
+  mutate(x_name = row.names(cor_df)) %>% 
+  filter(x_name != '(Intercept)') %>% 
+  select(-'(Intercept)') %>% 
+  pivot_longer(
+    gendermale:`wkly_study_hours5-10 hours`
+    , values_to = 'correlation'
+    , names_to = 'y_name'
+  ) %>% 
+  filter(
+    substr(x_name, 1, 6) != substr(y_name, 1, 6),
+    tolower(x_name) < tolower(y_name)
+  )
 ```
+
+
+Getting a histogram of the correlations between the variables.
+```{r}
+hist(cor_df$correlation)
+```
+
+Getting the top correlations
+```{r}
+cor_df %>% 
+  arrange(desc(correlation)) %>% 
+  mutate(correlation = round(correlation, digits = 3)) %>% 
+  head(6) %>% 
+  knitr::kable()
+```
+
+
 
 
 
@@ -832,13 +873,23 @@ model_stats_writing |> knitr::kable()
 ```
 
 
-=======
 
 
 
+# Model Diagnostics
 
+Plotting the residuals against the fitted values, we see no significant relationship.
 ```{r}
-
+plot(predict(lm_all_math, score_dummies), lm_all_math$residuals)
 ```
 
->>>>>>> refs/remotes/origin/main
+Examining the residuals for normality, we see some deviation, but not egregious deviation. 
+```{r}
+qqnorm(lm_all_math$residuals)
+```
+
+Examining the residuals versus leverage, we find that no point is exerting fully undue leverage. 
+
+```{r}
+plot(lm_all_math, which = 5)
+```
