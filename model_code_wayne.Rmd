@@ -149,16 +149,19 @@ cor_df =
 
 Getting a histogram of the correlations between the variables.
 ```{r}
-hist(cor_df$correlation)
+hist(cor_df$correlation, xlab = 'Correlation', main = 'Historgram of Correlations')
 ```
 
 Getting the top correlations
 ```{r}
 cor_df %>% 
-  arrange(desc(correlation)) %>% 
-  mutate(correlation = round(correlation, digits = 3)) %>% 
+  mutate(
+    correlation = round(correlation, digits = 3),
+    abs_correlation = round(abs(correlation), digits = 3)) %>% 
+  arrange(desc(abs_correlation))  %>% 
+  select(x_name, y_name, correlation) %>% 
   head(6) %>% 
-  knitr::kable()
+  knitr::kable(col.names = c("Variable 1", "Variable 2", "Correlation"))
 ```
 
 
