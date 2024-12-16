@@ -1,6 +1,6 @@
 ---
-title: "biostats_project"
-author: "Joe LaRocca"
+title: "Biostatistical Methods I - Final Project Code"
+author: "Ravi Brenner, Cameron Chesbrough, Joe LaRocca, Wayne Monical"
 date: "2024-12-10"
 output: html_document
 ---
@@ -577,7 +577,7 @@ adjr2_econ_reading = lm_econ_reading |> broom::glance() |> dplyr::select(adj.r.s
 
 ```{r}
 
-lm_econ_math = lm(writing_score ~ parent_educ_high.school + 
+lm_econ_writing = lm(writing_score ~ parent_educ_high.school + 
                     parent_educ_some.college + 
                     parent_educ_associate.s.degree + 
                     parent_educ_bachelor.s.degree + 
@@ -774,69 +774,6 @@ adjr2_fam_writing = lm_fam_writing |> broom::glance() |> dplyr::select(adj.r.squ
 
 ```
 
-## LASSO
-
-### Math_LASSO
-
-```{r}
-
-math_pred = model.matrix(math_score ~ ., math_data)[, -1]
-
-math_score = pull(math_data, math_score)
-
-math_cv = cv.glmnet(x = math_pred, y = math_score)
-
-math_lasso = glmnet(math_pred, math_score, lambda = math_cv$lambda.min) 
-
-r2_math_lasso = math_lasso$dev.ratio
-
-adj_r2_math_lasso = 1 - ((1 - r2_math_lasso) * (nrow(math_data) - 1)) / (nrow(math_data) - nrow(broom::tidy(math_lasso)) - 1)
-
-adj_r2_math_lasso
-
-```
-
-### Reading_LASSO
-
-```{r}
-
-reading_pred = model.matrix(reading_score ~ ., reading_data)[, -1]
-
-reading_score = pull(reading_data, reading_score)
-
-reading_cv = cv.glmnet(x = reading_pred, y = reading_score)
-
-reading_lasso = glmnet(reading_pred, reading_score, lambda = reading_cv$lambda.min) 
-
-r2_reading_lasso = reading_lasso$dev.ratio
-
-adj_r2_reading_lasso = 1 - ((1 - r2_reading_lasso) * (nrow(reading_data) - 1)) / (nrow(reading_data) - nrow(broom::tidy(reading_lasso)) - 1)
-
-adj_r2_reading_lasso
-
-```
-
-### Writing_LASSO
-
-```{r}
-
-writing_pred = model.matrix(writing_score ~ ., writing_data)[, -1]
-
-writing_score = pull(writing_data, writing_score)
-
-writing_cv = cv.glmnet(x = writing_pred, y = writing_score)
-
-writing_lasso = glmnet(writing_pred, writing_score, lambda = writing_cv$lambda.min) 
-
-r2_writing_lasso = writing_lasso$dev.ratio
-
-adj_r2_writing_lasso = 1 - ((1 - r2_writing_lasso) * (nrow(writing_data) - 1)) / (nrow(writing_data) - nrow(broom::tidy(writing_lasso)) - 1)
-
-adj_r2_writing_lasso
-
-```
-
-<<<<<<< HEAD
 ## Backwards Selection
 
 ### Math
