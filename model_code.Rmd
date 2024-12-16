@@ -617,11 +617,11 @@ adjr2_hw_math = lm_hw_math |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```{r}
 
-lm_hw_reading = lm(math_score ~ wkly_study_hours_..10.hours + 
+lm_hw_reading = lm(reading_score ~ wkly_study_hours_..10.hours + 
                   wkly_study_hours_5.10.hours + 
                   practice_sport_sometimes + 
                   practice_sport_regularly,
-                  data = math_data)
+                  data = reading_data)
 
 summary(lm_hw_reading)
 
@@ -635,8 +635,11 @@ adjr2_hw_reading = lm_hw_reading |> broom::glance() |> dplyr::select(adj.r.squar
 
 ```{r}
 
-lm_hw_writing = lm(writing_score ~ wkly_study_hours + 
-                  practice_sport, data = writing_data)
+lm_hw_writing = lm(writing_score ~ wkly_study_hours_..10.hours + 
+                  wkly_study_hours_5.10.hours + 
+                  practice_sport_sometimes + 
+                  practice_sport_regularly,
+                  data = writing_data)
 
 summary(lm_hw_writing)
 
@@ -652,8 +655,11 @@ adjr2_hw_writing = lm_hw_writing |> broom::glance() |> dplyr::select(adj.r.squar
 
 ```{r}
 
-lm_demo_math = lm(math_score ~ gender + 
-                    ethnic_group, data = math_data)
+lm_demo_math = lm(math_score ~ gender_male + 
+                    ethnic_group_B +
+                    ethnic_group_C +
+                    ethnic_group_D + 
+                    ethnic_group_E, data = math_data)
 
 summary(lm_demo_math)
 
@@ -667,8 +673,11 @@ adjr2_demo_math = lm_demo_math |> broom::glance() |> dplyr::select(adj.r.squared
 
 ```{r}
 
-lm_demo_reading = lm(reading_score ~ gender + 
-                       ethnic_group, data = reading_data)
+lm_demo_reading = lm(reading_score ~ gender_male + 
+                    ethnic_group_B +
+                    ethnic_group_C +
+                    ethnic_group_D + 
+                    ethnic_group_E, data = reading_data)
 
 summary(lm_demo_reading)
 
@@ -682,8 +691,11 @@ adjr2_demo_reading = lm_demo_reading |> broom::glance() |> dplyr::select(adj.r.s
 
 ```{r}
 
-lm_demo_writing = lm(writing_score ~ gender + 
-                    ethnic_group, data = writing_data)
+lm_demo_writing = lm(writing_score ~ gender_male + 
+                    ethnic_group_B +
+                    ethnic_group_C +
+                    ethnic_group_D + 
+                    ethnic_group_E, data = writing_data)
 
 summary(lm_demo_writing)
 
@@ -699,8 +711,15 @@ adjr2_demo_writing = lm_demo_writing |> broom::glance() |> dplyr::select(adj.r.s
 
 ```{r}
 
-lm_fam_math = lm(math_score ~ parent_marital_status + 
-                   is_first_child + nr_siblings, data = math_data)
+lm_fam_math = lm(math_score ~ parent_marital_status_divorced +
+                   parent_marital_status_single + 
+                   parent_marital_status_widowed + 
+                   is_first_child_yes + 
+                   nr_siblings_1 + 
+                   nr_siblings_2 + 
+                   nr_siblings_3 + 
+                   nr_siblings_4., 
+                 data = math_data)
 
 summary(lm_fam_math)
 
@@ -714,8 +733,15 @@ adjr2_fam_math = lm_fam_math |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```{r}
 
-lm_fam_reading = lm(reading_score ~ parent_marital_status + 
-                   is_first_child + nr_siblings, data = reading_data)
+lm_fam_reading = lm(reading_score ~ parent_marital_status_divorced +
+                   parent_marital_status_single + 
+                   parent_marital_status_widowed + 
+                   is_first_child_yes + 
+                   nr_siblings_1 + 
+                   nr_siblings_2 + 
+                   nr_siblings_3 + 
+                   nr_siblings_4., 
+                 data = reading_data)
 
 summary(lm_fam_reading)
 
@@ -729,8 +755,15 @@ adjr2_fam_reading = lm_fam_reading |> broom::glance() |> dplyr::select(adj.r.squ
 
 ```{r}
 
-lm_fam_writing = lm(writing_score ~ parent_marital_status + 
-                   is_first_child + nr_siblings, data = writing_data)
+lm_fam_writing = lm(writing_score ~ parent_marital_status_divorced +
+                   parent_marital_status_single + 
+                   parent_marital_status_widowed + 
+                   is_first_child_yes + 
+                   nr_siblings_1 + 
+                   nr_siblings_2 + 
+                   nr_siblings_3 + 
+                   nr_siblings_4., 
+                 data = writing_data)
 
 summary(lm_fam_writing)
 
@@ -805,9 +838,39 @@ adj_r2_writing_lasso
 <<<<<<< HEAD
 ## Backwards Selection
 
+### Math
+
 ```{r}
 
-lm_step_math = stepAIC(lm_all_math, direction = "both")
+lm_step_math = stepAIC(lm_all_math, direction = "backward")
+
+aic_step_math = AIC(lm_step_math)
+bic_step_math = BIC(lm_step_math)
+adjr2_step_math = lm_step_math |> broom::glance() |> pull(adj.r.squared)
+
+```
+
+### Reading
+
+```{r}
+
+lm_step_reading = stepAIC(lm_all_reading, direction = "backward")
+
+aic_step_reading = AIC(lm_step_reading)
+bic_step_reading = BIC(lm_step_reading)
+adjr2_step_reading = lm_step_reading |> broom::glance() |> pull(adj.r.squared)
+
+```
+
+### Writing
+
+```{r}
+
+lm_step_writing = stepAIC(lm_all_writing, direction = "backward")
+
+aic_step_writing = AIC(lm_step_writing)
+bic_step_writing = BIC(lm_step_writing)
+adjr2_step_writing = lm_step_writing |> broom::glance() |> pull(adj.r.squared)
 
 ```
 
@@ -818,19 +881,21 @@ lm_step_math = stepAIC(lm_all_math, direction = "both")
 ```{r}
 
 model_stats_math = tibble(
-  math_model_type = c("All", "Economic", "Hard Worker", 
-                 "Demographic", "Family Structure"),
-  ADJ_R2 = c(adjr2_all_math, 
+  math_model_type = c("All", "Backward Selection", "Economic", "Hard Worker", "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_math,
+             adjr2_step_math,
              adjr2_econ_math, 
              adjr2_hw_math,
              adjr2_demo_math,
              adjr2_fam_math),
   AIC = c(aic_all_math,
+          aic_step_math,
           aic_econ_math,
           aic_hw_math,
           aic_demo_math,
           aic_fam_math),
   BIC = c(bic_all_math,
+          bic_step_math,
           bic_econ_math,
           bic_hw_math,
           bic_demo_math,
@@ -846,19 +911,21 @@ model_stats_math |> knitr::kable()
 ```{r}
 
 model_stats_reading = tibble(
-  reading_model_type = c("All", "Economic", "Hard Worker", 
-                 "Demographic", "Family Structure"),
+  reading_model_type = c("All", "Backward Selection", "Economic", "Hard Worker", "Demographic", "Family Structure"),
   ADJ_R2 = c(adjr2_all_reading, 
+             adjr2_step_reading,
              adjr2_econ_reading, 
              adjr2_hw_reading,
              adjr2_demo_reading,
              adjr2_fam_reading),
   AIC = c(aic_all_reading,
+          aic_step_reading,
           aic_econ_reading,
           aic_hw_reading,
           aic_demo_reading,
           aic_fam_reading),
   BIC = c(bic_all_reading,
+          bic_step_reading,
           bic_econ_reading,
           bic_hw_reading,
           bic_demo_reading,
@@ -874,19 +941,21 @@ model_stats_reading |> knitr::kable()
 ```{r}
 
 model_stats_writing = tibble(
-  writing_model_type = c("All", "Economic", "Hard Worker", 
-                 "Demographic", "Family Structure"),
+  writing_model_type = c("All", "Backward Selection", "Economic", "Hard Worker", "Demographic", "Family Structure"),
   ADJ_R2 = c(adjr2_all_writing, 
+             adjr2_step_writing,
              adjr2_econ_writing, 
              adjr2_hw_writing,
              adjr2_demo_writing,
              adjr2_fam_writing),
   AIC = c(aic_all_writing,
+          aic_step_writing,
           aic_econ_writing,
           aic_hw_writing,
           aic_demo_writing,
           aic_fam_writing),
   BIC = c(bic_all_writing,
+          bic_step_writing,
           bic_econ_writing,
           bic_hw_writing,
           bic_demo_writing,
