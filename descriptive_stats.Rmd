@@ -13,7 +13,6 @@ library(tidyverse)
 library(glmnet)
 library(fastDummies)
 library(gtsummary)
-library(ggarr)
 ```
 
 ## Upload Data
