@@ -785,7 +785,6 @@ lm_step_math = stepAIC(lm_all_math, direction = "both")
 
 ```
 
-
 ## Readable Tables of Results
 
 ### Math
