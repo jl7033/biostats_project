@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(glmnet)
 library(fastDummies)
+library(MASS)
 ```
 
 ## Upload Data
@@ -93,9 +94,9 @@ dummy_col_names = c(
 
 score_dummies =
   proj_1_data %>% 
-  select(-math_score, -reading_score, -writing_score) %>% 
+  dplyr::select(-math_score, -reading_score, -writing_score) %>% 
   dummy_cols(ignore_na = TRUE) %>% 
-  select(all_of(dummy_col_names)) %>% 
+  dplyr::select(all_of(dummy_col_names)) %>% 
   ## fill NA's
   lapply(function(x) ifelse(is.na(x), round(mean(x, na.rm = TRUE), 3), x)) %>% 
   as.data.frame()
@@ -115,7 +116,7 @@ score_dummies
 ```{r}
 
 proj_1_data |>
-  select(math_score, reading_score, writing_score) |>
+  dplyr::select(math_score, reading_score, writing_score) |>
   pivot_longer(
     cols= everything(),
     names_to = "Test",
@@ -430,13 +431,13 @@ ggplot(data=proj_1_data, aes(x=nr_siblings,y=writing_score)) + geom_point()
 ```{r}
 
 math_data = proj_1_data |>
-  select(-reading_score, -writing_score)
+  dplyr::select(-reading_score, -writing_score)
 
 reading_data = proj_1_data |>
-  select(-math_score, -writing_score)
+  dplyr::select(-math_score, -writing_score)
 
 writing_data = proj_1_data |>
-  select(-math_score, -reading_score)
+  dplyr::select(-math_score, -reading_score)
 
 ```
 
@@ -450,7 +451,9 @@ lm_all_math = lm(math_score ~ ., data = math_data)
 
 summary(lm_all_math)
 
-lm_all_math |> broom::glance() |> select(adj.r.squared)
+aic_all_math = AIC(lm_all_math)
+bic_all_math = BIC(lm_all_math)
+adjr2_all_math = lm_all_math |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```
 
@@ -462,7 +465,9 @@ lm_all_reading = lm(reading_score ~ ., data = reading_data)
 
 summary(lm_all_reading)
 
-lm_all_reading |> broom::glance() |> select(adj.r.squared)
+aic_all_reading = AIC(lm_all_reading)
+bic_all_reading = BIC(lm_all_reading)
+adjr2_all_reading = lm_all_reading |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```
 
@@ -474,7 +479,197 @@ lm_all_writing = lm(writing_score ~ ., data = writing_data)
 
 summary(lm_all_writing)
 
-lm_all_writing |> broom::glance() |> select(adj.r.squared)
+aic_all_writing = AIC(lm_all_writing)
+bic_all_writing = BIC(lm_all_writing)
+adjr2_all_writing = lm_all_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Economic Model
+
+### Math_Econ
+
+```{r}
+
+lm_econ_math = lm(math_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = math_data)
+
+summary(lm_econ_math)
+
+aic_econ_math = AIC(lm_econ_math)
+bic_econ_math = BIC(lm_econ_math)
+adjr2_econ_math = lm_econ_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Econ
+
+```{r}
+
+lm_econ_reading = lm(reading_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = reading_data)
+
+summary(lm_econ_reading)
+
+aic_econ_reading = AIC(lm_econ_reading)
+bic_econ_reading = BIC(lm_econ_reading)
+adjr2_econ_reading = lm_econ_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Econ
+
+```{r}
+
+lm_econ_writing = lm(writing_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = writing_data)
+
+summary(lm_econ_writing)
+
+aic_econ_writing = AIC(lm_econ_writing)
+bic_econ_writing = BIC(lm_econ_writing)
+adjr2_econ_writing = lm_econ_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Hard Worker Model
+
+### Math_HW
+
+```{r}
+
+lm_hw_math = lm(math_score ~ wkly_study_hours + 
+                  practice_sport, data = math_data)
+
+summary(lm_hw_math)
+
+aic_hw_math = AIC(lm_hw_math)
+bic_hw_math = BIC(lm_hw_math)
+adjr2_hw_math = lm_hw_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_HW
+
+```{r}
+
+lm_hw_reading = lm(reading_score ~ wkly_study_hours + 
+                  practice_sport, data = reading_data)
+
+summary(lm_hw_reading)
+
+aic_hw_reading = AIC(lm_hw_reading)
+bic_hw_reading = BIC(lm_hw_reading)
+adjr2_hw_reading = lm_hw_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_HW
+
+```{r}
+
+lm_hw_writing = lm(writing_score ~ wkly_study_hours + 
+                  practice_sport, data = writing_data)
+
+summary(lm_hw_writing)
+
+aic_hw_writing = AIC(lm_hw_writing)
+bic_hw_writing = BIC(lm_hw_writing)
+adjr2_hw_writing = lm_hw_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Demographic Model
+
+### Math_Demo
+
+```{r}
+
+lm_demo_math = lm(math_score ~ gender + 
+                    ethnic_group, data = math_data)
+
+summary(lm_demo_math)
+
+aic_demo_math = AIC(lm_demo_math)
+bic_demo_math = BIC(lm_demo_math)
+adjr2_demo_math = lm_demo_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Demo
+
+```{r}
+
+lm_demo_reading = lm(reading_score ~ gender + 
+                       ethnic_group, data = reading_data)
+
+summary(lm_demo_reading)
+
+aic_demo_reading = AIC(lm_demo_reading)
+bic_demo_reading = BIC(lm_demo_reading)
+adjr2_demo_reading = lm_demo_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Demo
+
+```{r}
+
+lm_demo_writing = lm(writing_score ~ gender + 
+                    ethnic_group, data = writing_data)
+
+summary(lm_demo_writing)
+
+aic_demo_writing = AIC(lm_demo_writing)
+bic_demo_writing = BIC(lm_demo_writing)
+adjr2_demo_writing = lm_demo_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Family Structure Model
+
+### Math_Fam
+
+```{r}
+
+lm_fam_math = lm(math_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = math_data)
+
+summary(lm_fam_math)
+
+aic_fam_math = AIC(lm_fam_math)
+bic_fam_math = BIC(lm_fam_math)
+adjr2_fam_math = lm_fam_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Fam
+
+```{r}
+
+lm_fam_reading = lm(reading_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = reading_data)
+
+summary(lm_fam_reading)
+
+aic_fam_reading = AIC(lm_fam_reading)
+bic_fam_reading = BIC(lm_fam_reading)
+adjr2_fam_reading = lm_fam_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Fam
+
+```{r}
+
+lm_fam_writing = lm(writing_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = writing_data)
+
+summary(lm_fam_writing)
+
+aic_fam_writing = AIC(lm_fam_writing)
+bic_fam_writing = BIC(lm_fam_writing)
+adjr2_fam_writing = lm_fam_writing |> broom::glance() |> dplyr::select(adj.r.squared)
 
 ```
 
@@ -539,4 +734,100 @@ adj_r2_writing_lasso = 1 - ((1 - r2_writing_lasso) * (nrow(writing_data) - 1)) /
 adj_r2_writing_lasso
 
 ```
+
+## Backwards Selection
+
+```{r}
+
+lm_step_math = stepAIC(lm_all_math, direction = "both")
+
+```
+
+
+## Readable Tables of Results
+
+### Math
+
+```{r}
+
+model_stats_math = tibble(
+  math_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_math, 
+             adjr2_econ_math, 
+             adjr2_hw_math,
+             adjr2_demo_math,
+             adjr2_fam_math),
+  AIC = c(aic_all_math,
+          aic_econ_math,
+          aic_hw_math,
+          aic_demo_math,
+          aic_fam_math),
+  BIC = c(bic_all_math,
+          bic_econ_math,
+          bic_hw_math,
+          bic_demo_math,
+          bic_fam_math)
+)
+
+model_stats_math |> knitr::kable()
+
+```
+
+### Reading
+
+```{r}
+
+model_stats_reading = tibble(
+  reading_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_reading, 
+             adjr2_econ_reading, 
+             adjr2_hw_reading,
+             adjr2_demo_reading,
+             adjr2_fam_reading),
+  AIC = c(aic_all_reading,
+          aic_econ_reading,
+          aic_hw_reading,
+          aic_demo_reading,
+          aic_fam_reading),
+  BIC = c(bic_all_reading,
+          bic_econ_reading,
+          bic_hw_reading,
+          bic_demo_reading,
+          bic_fam_reading)
+)
+
+model_stats_reading |> knitr::kable()
+
+```
+
+### Writing
+
+```{r}
+
+model_stats_writing = tibble(
+  reading_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_writing, 
+             adjr2_econ_writing, 
+             adjr2_hw_writing,
+             adjr2_demo_writing,
+             adjr2_fam_writing),
+  AIC = c(aic_all_writing,
+          aic_econ_writing,
+          aic_hw_writing,
+          aic_demo_writing,
+          aic_fam_writing),
+  BIC = c(bic_all_writing,
+          bic_econ_writing,
+          bic_hw_writing,
+          bic_demo_writing,
+          bic_fam_writing)
+)
+
+model_stats_writing |> knitr::kable()
+
+```
+
 
