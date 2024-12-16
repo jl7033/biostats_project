@@ -917,20 +917,34 @@ t3 <- broom::tidy(lm_step_writing) |> dplyr::select(-std.error)
 
 
 
+
 # Model Diagnostics
 
 Plotting the residuals against the fitted values, we see no significant relationship.
 ```{r}
-plot(predict(lm_all_math, score_dummies), lm_all_math$residuals)
+plot(predict(lm_step_math, score_dummies), lm_step_math$residuals, xlab = 'Prediction', ylab = 'Residual', main = 'Backwards Selection Math Model Residuals')
+
+plot(predict(lm_step_reading, score_dummies), lm_step_reading$residuals, xlab = 'Prediction', ylab = 'Residual', main = 'Backwards Selection Reading Model Residuals')
+
+plot(predict(lm_step_writing, score_dummies), lm_step_writing$residuals, xlab = 'Prediction', ylab = 'Residual', main = 'Backwards Selection Writing Model Residuals')
 ```
 
 Examining the residuals for normality, we see some deviation, but not egregious deviation. 
 ```{r}
-qqnorm(lm_all_math$residuals)
+qqnorm(lm_step_math$residuals, main = 'Backward Selection Math Model Normal Q-Q Plot')
+qqnorm(lm_step_reading$residuals, main = 'Backward Selection Reading Model Normal Q-Q Plot')
+qqnorm(lm_step_writing$residuals, main = 'Backward Selection Writing Model Normal Q-Q Plot')
+
 ```
 
 Examining the residuals versus leverage, we find that no point is exerting fully undue leverage. 
 
 ```{r}
-plot(lm_all_math, which = 5)
+
+plot(lm_step_math, which = 5, main = 'Backwards Selection Math Model')
+plot(lm_step_reading, which = 5, main = 'Backwards Selection Reading Model')
+plot(lm_step_writing, which = 5, main = 'Backwards Selection Writing Model')
+
+
+
 ```
