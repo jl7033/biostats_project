@@ -13,6 +13,7 @@ library(tidyverse)
 library(glmnet)
 library(fastDummies)
 library(gtsummary)
+library(ggarr)
 ```
 
 ## Upload Data
@@ -70,4 +71,88 @@ proj_1_data |>
   gt::gtsave(filename = "table1.docx")
 ```
 
+Looking at the potential predictors, students who studied less than 5 hours had lower averages, but the difference between students who studied between 5-10 hours and students more than 10 is minimal. Students on the free/reduced lunch program had lower scores across tests. Similarly, students whose parents had bachelor’s or graduate degrees generally scored higher than students whose parents had highschool degrees or less. When comparing test scores among sex, males had a slightly higher mean Math score while females scored higher in both Reading and Writing.
+
+weekly study hours
+```{r}
+study_plot <- proj_1_data |>
+  pivot_longer(cols = c(math_score,writing_score,reading_score),
+               names_to = "subject",
+               values_to = "score") |>
+  mutate(wkly_study_hours = factor(wkly_study_hours,
+                                   levels = c("< 5 hours",
+                                              "5-10 hours",
+                                              "> 10 hours"))) |>
+  drop_na(wkly_study_hours) |>
+  ggplot(aes(x = wkly_study_hours, y = score, color = subject)) + 
+  geom_boxplot() +
+  scale_color_discrete(name = "Subject",
+                       labels = c("Math","Reading","Writing")) + 
+  labs(x = "Weekly study hours",
+       y = "Grade") +
+  theme_bw()
+```
+
+lunch
+
+```{r}
+lunch_plot <- proj_1_data |>
+  pivot_longer(cols = c(math_score,writing_score,reading_score),
+               names_to = "subject",
+               values_to = "score") |>
+  ggplot(aes(x = lunch_type, y = score, color = subject)) + 
+  geom_boxplot() +
+  scale_color_discrete(name = "Subject",
+                       labels = c("Math","Reading","Writing")) + 
+  labs(x = "Lunch type",
+       y = "Grade") +
+  theme_bw()
+```
+
+Parent education
+
+```{r}
+educ_plot <- proj_1_data |>
+  pivot_longer(cols = c(math_score,writing_score,reading_score),
+               names_to = "subject",
+               values_to = "score") |>
+  drop_na(parent_educ) |>
+  mutate(parent_educ = factor(parent_educ,
+                              levels = c("some high school",
+                                         "high school",
+                                         "some college",
+                                         "associate's degree",
+                                         "bachelor's degree",
+                                         "master's degree"))) |>
+  ggplot(aes(x = parent_educ, y = score, color = subject)) + 
+  geom_boxplot() +
+  scale_color_discrete(name = "Subject",
+                       labels = c("Math","Reading","Writing")) + 
+  labs(x = "Parent education level",
+       y = "Grade") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Gender
+
+```{r}
+gender_plot <- proj_1_data |>
+  pivot_longer(cols = c(math_score,writing_score,reading_score),
+               names_to = "subject",
+               values_to = "score") |>
+  ggplot(aes(x = gender, y = score, color = subject)) + 
+  geom_boxplot() +
+  scale_color_discrete(name = "Subject",
+                       labels = c("Math","Reading","Writing")) + 
+  labs(x = "Gender",
+       y = "Grade") +
+  theme_bw()
+```
+
+```{r}
+(study_plot + lunch_plot) / (educ_plot + gender_plot) + plot_layout(guides = 'collect')
+
+ggsave("boxplots.png")
+```
 
