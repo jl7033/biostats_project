@@ -135,7 +135,6 @@ cor_df =
   )
 ```
 
-
 Getting a histogram of the correlations between the variables.
 ```{r}
 hist(cor_df$correlation,
