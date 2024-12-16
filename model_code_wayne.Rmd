@@ -1,0 +1,907 @@
+---
+title: "biostats_project"
+author: "Joe LaRocca"
+date: "2024-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(glmnet)
+library(fastDummies)
+library(MASS)
+library(tidyverse)
+
+```
+
+## Upload Data
+
+```{r}
+
+proj_1_data = read_csv("data/Project_1_data.csv") |>
+  janitor::clean_names() |>
+  mutate(wkly_study_hours = 
+           case_match(
+             wkly_study_hours,
+             "< 5" ~ "< 5 hours",
+             "10-May" ~ "5-10 hours",
+             "> 10" ~ "> 10 hours"
+           ),
+         ethnic_group = 
+           case_match(
+             ethnic_group,
+             "group A" ~ "A",
+             "group B" ~ "B",
+             "group C" ~ "C",
+             "group D" ~ "D",
+             "group E" ~ "E"
+           ),
+         nr_siblings = 
+           case_match(
+             nr_siblings,
+             0 ~ "0",
+             1 ~ "1",
+             2 ~ "2",
+             3 ~ "3",
+             4 ~ "4+",
+             5 ~ "4+",
+             6 ~ "4+",
+             7 ~ "4+"
+           )
+         ) 
+```
+
+
+Filling NA's. Creating Model Matrix
+```{r}
+
+dummy_col_names = c(
+  "gender_male" 
+  #, "gender_female"
+  
+  # , "ethnic_group_A",
+  , "ethnic_group_B", "ethnic_group_C" , "ethnic_group_D" , "ethnic_group_E"
+  
+  # , "parent_educ_some high school"
+  , "parent_educ_high school", "parent_educ_some college"
+  , "parent_educ_associate's degree", "parent_educ_bachelor's degree"
+  , "parent_educ_master's degree" 
+  
+  
+  # , "lunch_type_standard"
+  ,"lunch_type_free/reduced"
+  
+  # , "test_prep_none"
+  , "test_prep_completed"
+  
+  # ,  "parent_marital_status_married"
+  , "parent_marital_status_divorced", "parent_marital_status_single"
+  , "parent_marital_status_widowed"
+  
+  # , "practice_sport_never"
+  , "practice_sport_sometimes", "practice_sport_regularly"
+  
+  # , "is_first_child_no"
+  , "is_first_child_yes"
+  
+  # , "transport_means_school_bus"
+  ,  "transport_means_private"
+  
+  # , "nr_siblings_0"
+  , "nr_siblings_1", "nr_siblings_2", "nr_siblings_3", "nr_siblings_4+"  
+  
+  # , "wkly_study_hours_< 5 hours"
+  , "wkly_study_hours_> 10 hours", "wkly_study_hours_5-10 hours"
+)
+
+
+
+score_dummies =
+  proj_1_data %>% 
+  dplyr::select(-math_score, -reading_score, -writing_score) %>% 
+  dummy_cols(ignore_na = TRUE) %>% 
+  dplyr::select(all_of(dummy_col_names)) %>% 
+  ## fill NA's
+  lapply(function(x) ifelse(is.na(x), round(mean(x, na.rm = TRUE), 3), x)) %>% 
+  as.data.frame()
+```
+
+
+```{r}
+
+  proj_1_data %>% 
+  dplyr::select(-math_score, -reading_score, -writing_score) %>% 
+  dummy_cols(ignore_na = TRUE) %>% 
+  names()
+```
+
+
+
+### Correlation
+
+```{r}
+cor_df = 
+  proj_1_data %>%
+  dplyr::select(-reading_score, -writing_score) %>% 
+  drop_na()
+
+cor_df = 
+  model.matrix(object = math_score ~ ., data = cor_df) %>% 
+  cor() %>% 
+  as.data.frame()
+
+cor_df = 
+  cor_df %>% 
+  mutate(x_name = row.names(cor_df)) %>% 
+  filter(x_name != '(Intercept)') %>% 
+  select(-'(Intercept)') %>% 
+  pivot_longer(
+    gendermale:`wkly_study_hours5-10 hours`
+    , values_to = 'correlation'
+    , names_to = 'y_name'
+  ) %>% 
+  filter(
+    substr(x_name, 1, 6) != substr(y_name, 1, 6),
+    tolower(x_name) < tolower(y_name)
+  )
+```
+
+
+Getting a histogram of the correlations between the variables.
+```{r}
+hist(cor_df$correlation)
+```
+
+Getting the top correlations
+```{r}
+cor_df %>% 
+  arrange(desc(correlation)) %>% 
+  mutate(correlation = round(correlation, digits = 3)) %>% 
+  head(6) %>% 
+  knitr::kable()
+```
+
+
+
+
+
+## Create Table Summarizing Response Variables
+
+```{r}
+
+proj_1_data |>
+  dplyr::select(math_score, reading_score, writing_score) |>
+  pivot_longer(
+    cols= everything(),
+    names_to = "Test",
+    values_to = "Score"
+  ) |>
+  group_by(Test) |>
+  summarize(Mean = round(mean(Score), 2),
+            StDev = round(sd(Score), 2),
+            Min = min(Score),
+            Max = max(Score)) |>
+  mutate(Test = case_match(
+    Test,
+    "math_score" ~ "Math",
+    "reading_score" ~ "Reading",
+    "writing_score" ~ "Writing"
+    )
+  ) |>
+  knitr::kable()
+
+```
+
+## Single-Variable Categorical Plots
+
+### Ethnic Group
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = ethnic_group)) + 
+  geom_bar()
+
+```
+
+### Parent Education
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = parent_educ)) + 
+  geom_bar()
+
+```
+
+### Lunch Type
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = lunch_type)) + 
+  geom_bar()
+
+```
+
+### Test Prep
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = test_prep)) + 
+  geom_bar()
+
+```
+
+### Parent Marital Status
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = parent_marital_status)) + 
+  geom_bar()
+
+```
+
+### Practicing Sports
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = practice_sport)) + 
+  geom_bar()
+
+```
+
+### First Child
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = is_first_child)) + 
+  geom_bar()
+
+```
+
+### Number of Siblings
+
+```{r}
+
+proj_1_data |>
+  ggplot(aes(x = nr_siblings)) + 
+  geom_bar()
+
+```
+
+### Further EDA
+
+```{r}
+# Histograms for Response Variables
+
+ggplot(data=proj_1_data, aes(math_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Math Scores",
+       x = "Math Score",
+       y = "") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(reading_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Reading Scores",
+       x = "Reading Score",
+       y = "") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(writing_score)) +
+  geom_histogram(color = "black", fill = "white") +
+  labs(title = "Histogram of Writing Scores",
+       x = "Writing Score",
+       y = "") +
+  theme_bw()
+
+# Boxplots for Predictive Variables
+
+ggplot(data=proj_1_data, aes(x=parent_educ,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_educ,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_educ,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parent Education",
+       x = "Parent Level of Education",
+       y = "Writng Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=wkly_study_hours,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Study Hours",
+       x = "Amount of Hours Studied",
+       y = "Writing Score") +
+  theme_bw()
+
+# Looks strong
+ggplot(data=proj_1_data, aes(x=lunch_type,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=lunch_type,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=lunch_type,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Lunch Type",
+       x = "Lunch Type",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=transport_means,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=transport_means,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=transport_means,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Transportation",
+       x = "Transportation Type",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=practice_sport,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=practice_sport,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=practice_sport,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Sports",
+       x = "Sports Participation",
+       y = "Writing Score") +
+  theme_bw()
+
+# Looks strong, look at diff between math and read/write
+ggplot(data=proj_1_data, aes(x=gender,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=gender,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=gender,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Gender",
+       x = "Gender",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=ethnic_group,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Ethnic Group",
+       x = "Ethnic Group",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=parent_marital_status,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for Parental Marital Status",
+       x = "Parental Marital Status",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=is_first_child,y=math_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Math Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=is_first_child,y=reading_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Reading Score") +
+  theme_bw()
+ggplot(data=proj_1_data, aes(x=is_first_child,y=writing_score)) +
+  geom_boxplot() +
+  labs(title = "Boxplots for First Child Status",
+       x = "First Child Status",
+       y = "Writing Score") +
+  theme_bw()
+
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=math_score)) + geom_point()
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=reading_score)) + geom_point()
+ggplot(data=proj_1_data, aes(x=nr_siblings,y=writing_score)) + geom_point()
+```
+
+# Modeling
+
+### Create Data Frames with only Math, Reading, Writing to Make LM Functions Easier to Write
+
+```{r}
+
+math_data = proj_1_data |>
+  dplyr::select(-reading_score, -writing_score)
+
+reading_data = proj_1_data |>
+  dplyr::select(-math_score, -writing_score)
+
+writing_data = proj_1_data |>
+  dplyr::select(-math_score, -reading_score)
+
+```
+
+## All Predictors
+
+### Math_All
+
+```{r}
+
+lm_all_math = lm(math_score ~ ., data = math_data)
+
+summary(lm_all_math)
+
+aic_all_math = AIC(lm_all_math)
+bic_all_math = BIC(lm_all_math)
+adjr2_all_math = lm_all_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_All
+
+```{r}
+
+lm_all_reading = lm(reading_score ~ ., data = reading_data)
+
+summary(lm_all_reading)
+
+aic_all_reading = AIC(lm_all_reading)
+bic_all_reading = BIC(lm_all_reading)
+adjr2_all_reading = lm_all_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_All
+
+```{r}
+
+lm_all_writing = lm(writing_score ~ ., data = writing_data)
+
+summary(lm_all_writing)
+
+aic_all_writing = AIC(lm_all_writing)
+bic_all_writing = BIC(lm_all_writing)
+adjr2_all_writing = lm_all_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Economic Model
+
+### Math_Econ
+
+```{r}
+
+lm_econ_math = lm(math_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = math_data)
+
+summary(lm_econ_math)
+
+aic_econ_math = AIC(lm_econ_math)
+bic_econ_math = BIC(lm_econ_math)
+adjr2_econ_math = lm_econ_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Econ
+
+```{r}
+
+lm_econ_reading = lm(reading_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = reading_data)
+
+summary(lm_econ_reading)
+
+aic_econ_reading = AIC(lm_econ_reading)
+bic_econ_reading = BIC(lm_econ_reading)
+adjr2_econ_reading = lm_econ_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Econ
+
+```{r}
+
+lm_econ_writing = lm(writing_score ~ parent_educ + lunch_type + 
+                    test_prep + transport_means, data = writing_data)
+
+summary(lm_econ_writing)
+
+aic_econ_writing = AIC(lm_econ_writing)
+bic_econ_writing = BIC(lm_econ_writing)
+adjr2_econ_writing = lm_econ_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Hard Worker Model
+
+### Math_HW
+
+```{r}
+
+lm_hw_math = lm(math_score ~ wkly_study_hours + 
+                  practice_sport, data = math_data)
+
+summary(lm_hw_math)
+
+aic_hw_math = AIC(lm_hw_math)
+bic_hw_math = BIC(lm_hw_math)
+adjr2_hw_math = lm_hw_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_HW
+
+```{r}
+
+lm_hw_reading = lm(reading_score ~ wkly_study_hours + 
+                  practice_sport, data = reading_data)
+
+summary(lm_hw_reading)
+
+aic_hw_reading = AIC(lm_hw_reading)
+bic_hw_reading = BIC(lm_hw_reading)
+adjr2_hw_reading = lm_hw_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_HW
+
+```{r}
+
+lm_hw_writing = lm(writing_score ~ wkly_study_hours + 
+                  practice_sport, data = writing_data)
+
+summary(lm_hw_writing)
+
+aic_hw_writing = AIC(lm_hw_writing)
+bic_hw_writing = BIC(lm_hw_writing)
+adjr2_hw_writing = lm_hw_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Demographic Model
+
+### Math_Demo
+
+```{r}
+
+lm_demo_math = lm(math_score ~ gender + 
+                    ethnic_group, data = math_data)
+
+summary(lm_demo_math)
+
+aic_demo_math = AIC(lm_demo_math)
+bic_demo_math = BIC(lm_demo_math)
+adjr2_demo_math = lm_demo_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Demo
+
+```{r}
+
+lm_demo_reading = lm(reading_score ~ gender + 
+                       ethnic_group, data = reading_data)
+
+summary(lm_demo_reading)
+
+aic_demo_reading = AIC(lm_demo_reading)
+bic_demo_reading = BIC(lm_demo_reading)
+adjr2_demo_reading = lm_demo_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Demo
+
+```{r}
+
+lm_demo_writing = lm(writing_score ~ gender + 
+                    ethnic_group, data = writing_data)
+
+summary(lm_demo_writing)
+
+aic_demo_writing = AIC(lm_demo_writing)
+bic_demo_writing = BIC(lm_demo_writing)
+adjr2_demo_writing = lm_demo_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## Family Structure Model
+
+### Math_Fam
+
+```{r}
+
+lm_fam_math = lm(math_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = math_data)
+
+summary(lm_fam_math)
+
+aic_fam_math = AIC(lm_fam_math)
+bic_fam_math = BIC(lm_fam_math)
+adjr2_fam_math = lm_fam_math |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Reading_Fam
+
+```{r}
+
+lm_fam_reading = lm(reading_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = reading_data)
+
+summary(lm_fam_reading)
+
+aic_fam_reading = AIC(lm_fam_reading)
+bic_fam_reading = BIC(lm_fam_reading)
+adjr2_fam_reading = lm_fam_reading |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+### Writing_Fam
+
+```{r}
+
+lm_fam_writing = lm(writing_score ~ parent_marital_status + 
+                   is_first_child + nr_siblings, data = writing_data)
+
+summary(lm_fam_writing)
+
+aic_fam_writing = AIC(lm_fam_writing)
+bic_fam_writing = BIC(lm_fam_writing)
+adjr2_fam_writing = lm_fam_writing |> broom::glance() |> dplyr::select(adj.r.squared)
+
+```
+
+## LASSO
+
+### Math_LASSO
+
+```{r}
+
+math_pred = model.matrix(math_score ~ ., math_data)[, -1]
+
+math_score = pull(math_data, math_score)
+
+math_cv = cv.glmnet(x = math_pred, y = math_score)
+
+math_lasso = glmnet(math_pred, math_score, lambda = math_cv$lambda.min) 
+
+r2_math_lasso = math_lasso$dev.ratio
+
+adj_r2_math_lasso = 1 - ((1 - r2_math_lasso) * (nrow(math_data) - 1)) / (nrow(math_data) - nrow(broom::tidy(math_lasso)) - 1)
+
+adj_r2_math_lasso
+
+```
+
+### Reading_LASSO
+
+```{r}
+
+reading_pred = model.matrix(reading_score ~ ., reading_data)[, -1]
+
+reading_score = pull(reading_data, reading_score)
+
+reading_cv = cv.glmnet(x = reading_pred, y = reading_score)
+
+reading_lasso = glmnet(reading_pred, reading_score, lambda = reading_cv$lambda.min) 
+
+r2_reading_lasso = reading_lasso$dev.ratio
+
+adj_r2_reading_lasso = 1 - ((1 - r2_reading_lasso) * (nrow(reading_data) - 1)) / (nrow(reading_data) - nrow(broom::tidy(reading_lasso)) - 1)
+
+adj_r2_reading_lasso
+
+```
+
+### Writing_LASSO
+
+```{r}
+
+writing_pred = model.matrix(writing_score ~ ., writing_data)[, -1]
+
+writing_score = pull(writing_data, writing_score)
+
+writing_cv = cv.glmnet(x = writing_pred, y = writing_score)
+
+writing_lasso = glmnet(writing_pred, writing_score, lambda = writing_cv$lambda.min) 
+
+r2_writing_lasso = writing_lasso$dev.ratio
+
+adj_r2_writing_lasso = 1 - ((1 - r2_writing_lasso) * (nrow(writing_data) - 1)) / (nrow(writing_data) - nrow(broom::tidy(writing_lasso)) - 1)
+
+adj_r2_writing_lasso
+
+```
+
+<<<<<<< HEAD
+## Backwards Selection
+
+```{r}
+
+lm_step_math = stepAIC(lm_all_math, direction = "both")
+
+```
+
+## Readable Tables of Results
+
+### Math
+
+```{r}
+
+model_stats_math = tibble(
+  math_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_math, 
+             adjr2_econ_math, 
+             adjr2_hw_math,
+             adjr2_demo_math,
+             adjr2_fam_math),
+  AIC = c(aic_all_math,
+          aic_econ_math,
+          aic_hw_math,
+          aic_demo_math,
+          aic_fam_math),
+  BIC = c(bic_all_math,
+          bic_econ_math,
+          bic_hw_math,
+          bic_demo_math,
+          bic_fam_math)
+)
+
+model_stats_math |> knitr::kable()
+
+```
+
+### Reading
+
+```{r}
+
+model_stats_reading = tibble(
+  reading_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_reading, 
+             adjr2_econ_reading, 
+             adjr2_hw_reading,
+             adjr2_demo_reading,
+             adjr2_fam_reading),
+  AIC = c(aic_all_reading,
+          aic_econ_reading,
+          aic_hw_reading,
+          aic_demo_reading,
+          aic_fam_reading),
+  BIC = c(bic_all_reading,
+          bic_econ_reading,
+          bic_hw_reading,
+          bic_demo_reading,
+          bic_fam_reading)
+)
+
+model_stats_reading |> knitr::kable()
+
+```
+
+### Writing
+
+```{r}
+
+model_stats_writing = tibble(
+  reading_model_type = c("All", "Economic", "Hard Worker", 
+                 "Demographic", "Family Structure"),
+  ADJ_R2 = c(adjr2_all_writing, 
+             adjr2_econ_writing, 
+             adjr2_hw_writing,
+             adjr2_demo_writing,
+             adjr2_fam_writing),
+  AIC = c(aic_all_writing,
+          aic_econ_writing,
+          aic_hw_writing,
+          aic_demo_writing,
+          aic_fam_writing),
+  BIC = c(bic_all_writing,
+          bic_econ_writing,
+          bic_hw_writing,
+          bic_demo_writing,
+          bic_fam_writing)
+)
+
+model_stats_writing |> knitr::kable()
+
+```
+
+
+
+
+
+# Model Diagnostics
+
+Plotting the residuals against the fitted values, we see no significant relationship.
+```{r}
+plot(predict(lm_all_math, score_dummies), lm_all_math$residuals)
+```
+
+Examining the residuals for normality, we see some deviation, but not egregious deviation. 
+```{r}
+qqnorm(lm_all_math$residuals)
+```
+
+Examining the residuals versus leverage, we find that no point is exerting fully undue leverage. 
+
+```{r}
+plot(lm_all_math, which = 5)
+```
