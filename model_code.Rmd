@@ -966,6 +966,15 @@ model_stats_writing |> knitr::kable()
 
 ```
 
+Final model statistics
+```{r}
+t1 <- broom::tidy(lm_step_math) |> dplyr::select(-std.error)
+
+t2 <- broom::tidy(lm_step_reading) |> dplyr::select(-std.error)
+
+t3 <- broom::tidy(lm_step_writing) |> dplyr::select(-std.error)
+
+```
 
 
 
