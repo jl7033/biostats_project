@@ -89,7 +89,7 @@ study_plot <- proj_1_data |>
   scale_color_discrete(name = "Subject",
                        labels = c("Math","Reading","Writing")) + 
   labs(x = "Weekly study hours",
-       y = "Grade") +
+       y = "Test score") +
   theme_bw()
 ```
 
@@ -105,7 +105,7 @@ lunch_plot <- proj_1_data |>
   scale_color_discrete(name = "Subject",
                        labels = c("Math","Reading","Writing")) + 
   labs(x = "Lunch type",
-       y = "Grade") +
+       y = "") +
   theme_bw()
 ```
 
@@ -129,7 +129,7 @@ educ_plot <- proj_1_data |>
   scale_color_discrete(name = "Subject",
                        labels = c("Math","Reading","Writing")) + 
   labs(x = "Parent education level",
-       y = "Grade") +
+       y = "Test score") +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
@@ -146,12 +146,13 @@ gender_plot <- proj_1_data |>
   scale_color_discrete(name = "Subject",
                        labels = c("Math","Reading","Writing")) + 
   labs(x = "Gender",
-       y = "Grade") +
+       y = "") +
   theme_bw()
 ```
 
 ```{r}
-(study_plot + lunch_plot) / (educ_plot + gender_plot) + plot_layout(guides = 'collect')
+(study_plot + lunch_plot) / (educ_plot + gender_plot) + plot_layout(guides = 'collect') &
+    theme(text = element_text(size = 15))
 
 ggsave("boxplots.png")
 ```
