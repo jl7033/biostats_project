@@ -102,6 +102,61 @@ score_dummies =
 ```
 
 
+
+
+# EDA
+
+### Correlation
+
+Checking correlation of the predictor variables. There
+```{r}
+score_dummies %>% 
+  cor() %>% 
+  hist()
+```
+
+
+```{r}
+cor_df = 
+  proj_1_data %>%
+  select(-reading_score, -writing_score) %>% 
+  drop_na()
+
+cor_df = 
+  model.matrix(object = math_score ~ ., data = cor_df) %>% 
+  cor() %>% 
+  as.data.frame()
+
+cor_df = 
+  cor_df %>% 
+  mutate(x_name = row.names(cor_df)) %>% 
+  filter(x_name != '(Intercept)') %>% 
+  select(-'(Intercept)') %>% 
+  pivot_longer(
+    gendermale:`wkly_study_hours5-10 hours`
+    , values_to = 'correlation'
+    , names_to = 'y_name'
+  ) %>% 
+  filter(
+    substr(x_name, 1, 6) != substr(y_name, 1, 6),
+    tolower(x_name) < tolower(y_name)
+  )
+```
+
+```{r}
+hist(cor_df$correlation)
+```
+
+```{r}
+cor_df %>% 
+  arrange(desc(correlation)) %>% 
+  mutate(correlation = round(correlation, digits = 3)) %>% 
+  head(6) %>% 
+  knitr::kable()
+```
+
+
+
 ### Create Data Frames 
 
 ```{r}
