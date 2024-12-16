@@ -135,10 +135,11 @@ cor_df =
   )
 ```
 
-
 Getting a histogram of the correlations between the variables.
 ```{r}
-hist(cor_df$correlation)
+hist(cor_df$correlation,
+     main = "Histogram of Correlations Between Predictors",
+     xlab = "Correlation Coefficient")
 ```
 
 Getting the top correlations
