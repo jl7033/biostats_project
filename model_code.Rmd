@@ -7,10 +7,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
 library(glmnet)
 library(fastDummies)
 library(MASS)
+library(tidyverse)
+
 ```
 
 ## Upload Data
@@ -109,7 +110,7 @@ score_dummies =
 ```{r}
 cor_df = 
   proj_1_data %>%
-  select(-reading_score, -writing_score) %>% 
+  dplyr::select(-reading_score, -writing_score) %>% 
   drop_na()
 
 cor_df = 
